@@ -1802,8 +1802,8 @@ const CLOUD = {
   },
   async readData() {
     if (this.configured()) {
-      // 自建/企业 API 或测试环境：直接走 Contents API，避免依赖 raw 域名
-      if (this.cfg.apiBase) {
+      // 已填 Token 时直接走 Contents API，避免 Pages/raw 的 CDN 缓存导致读不到刚写入的数据
+      if (this.writable() || this.cfg.apiBase) {
         const res = await this.request('GET', this.apiPath('data.json'));
         if (res.status === 404) return null;
         if (!res.ok) throw new Error(`读取 data.json 失败（HTTP ${res.status}）`);
