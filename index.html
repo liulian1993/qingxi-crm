@@ -2047,7 +2047,7 @@ function renderSyncBar() {
   let html = '';
   if (!CLOUD.configured()) {
     bar.classList.add('ro');
-    html = `<span class="dot"></span><span>只读模式 · 尚未连接 GitHub 仓库，数据来自本地缓存</span>
+    html = `<span class="dot"></span><span>只读模式 · 尚未填写仓库信息，正在显示仓库里的 data.json</span>
       <span class="spacer"></span><button data-sync="settings">连接仓库</button>`;
   } else if (!writable) {
     bar.classList.add('ro');
