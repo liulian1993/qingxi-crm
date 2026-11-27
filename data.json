@@ -1,7 +1,7 @@
 {
   "version": 2,
   "app": "清洗剂客户管理",
-  "updatedAt": "2026-11-27T02:11:15.802Z",
+  "updatedAt": "2026-11-27T02:11:17.908Z",
   "customers": [
     {
       "company": "浙江科能达电气有限公司",
@@ -37,31 +37,6 @@
       "followUps": []
     }
   ],
-  "notes": [
-    {
-      "id": "b2ef3f8e-5071-44d3-9ff4-cbfa335606cb",
-      "kind": "summary",
-      "content": "测试速记-自动化验证：松香清洗剂残留观察，含一张附图，验证完会删除。",
-      "customerId": "",
-      "companyName": "",
-      "dueDate": "",
-      "done": false,
-      "tags": [],
-      "createdAt": "2026-11-27T02:04:55.880Z",
-      "updatedAt": "2026-11-27T02:04:55.880Z"
-    }
-  ],
-  "images": [
-    {
-      "id": "03670b38-b41f-4974-aeff-a72efa9ebae8",
-      "customerId": "",
-      "noteId": "b2ef3f8e-5071-44d3-9ff4-cbfa335606cb",
-      "name": "test-shot.png",
-      "type": "image/png",
-      "size": 70,
-      "caption": "",
-      "path": "images/03670b38-b41f-4974-aeff-a72efa9ebae8.png",
-      "createdAt": "2026-11-27T02:04:55.880Z"
-    }
-  ]
+  "notes": [],
+  "images": []
 }
