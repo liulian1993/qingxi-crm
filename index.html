@@ -799,6 +799,9 @@ main{padding-bottom:88px}
 .note-image-full img{max-width:100%;max-height:70vh;display:block;border-radius:6px}
 .editor-images{margin-top:10px}
 .editor-imgs-label{font-size:10.5px;color:var(--faint);margin-bottom:5px}
+.editor-img-add{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:86px;height:86px;border:1.5px dashed var(--line);border-radius:8px;background:var(--soft);color:var(--faint);vertical-align:top}
+.editor-img-add .btn{font-size:11px;padding:3px 8px}
+.qn-img-hint{font-size:10px;color:var(--faint)}
 
 /* 汇总预览 */
 .summary-title-field{margin-bottom:12px;gap:5px}
@@ -2865,6 +2868,12 @@ function onDocumentChange(e) {
     if (files.length) addQuickFiles(files);
     return;
   }
+  if (target.id === 'editorImageInput') {
+    const files = target.files ? Array.from(target.files) : [];
+    target.value = '';
+    if (files.length) addEditorFiles(files);
+    return;
+  }
   if (target.id === 'importInput') {
     const file = target.files && target.files[0];
     target.value = '';
@@ -2925,6 +2934,13 @@ function onPaste(e) {
     if (files.length) {
       e.preventDefault();
       addQuickFiles(files);
+    }
+    return;
+  }
+  if (editorCtx) {
+    if (files.length) {
+      e.preventDefault();
+      addEditorFiles(files);
     }
     return;
   }
@@ -3133,6 +3149,14 @@ function handleAction(action, el) {
       break;
     case 'editor-kind':
       setEditorKind(el.dataset.kind);
+      break;
+    case 'editor-pick-image': {
+      const input = document.getElementById('editorImageInput');
+      if (input) input.click();
+      break;
+    }
+    case 'editor-remove-image':
+      removeEditorImage(Number(el.dataset.index));
       break;
     case 'notes-range':
       state.noteRange = el.dataset.range;
@@ -4122,6 +4146,7 @@ function openNoteEditor(id) {
     </div>
     <div class="qn-extra" id="editorExtra"></div>
     <div class="editor-images" id="editorImages"></div>
+    <input type="file" id="editorImageInput" multiple accept="image/*" hidden>
     <datalist id="editorCustomerList">${customerOptions}</datalist>
     <datalist id="editorTagList">${tagOptions}</datalist>`;
   const entry = createModal({
@@ -4134,10 +4159,13 @@ function openNoteEditor(id) {
     backdropClose: false,
     escapeClose: true,
     onClose: () => {
-      if (editorCtx && editorCtx.entry === entry) editorCtx = null;
+      if (editorCtx && editorCtx.entry === entry) {
+        (editorCtx.pending || []).forEach(f => { try { URL.revokeObjectURL(f.objectUrl); } catch (e) {} });
+        editorCtx = null;
+      }
     }
   });
-  editorCtx = { entry, note, draft };
+  editorCtx = { entry, note, draft, pending: [] };
   renderEditorExtra();
   renderEditorImages();
   entry.modal.querySelector('#editorSaveBtn').addEventListener('click', saveNoteEdits);
@@ -4161,18 +4189,52 @@ function renderEditorExtra() {
 
 function renderEditorImages() {
   if (!editorCtx) return;
-  const { entry, note } = editorCtx;
+  const { entry, note, pending } = editorCtx;
   const el = entry.modal.querySelector('#editorImages');
   if (!el) return;
   const imgs = noteImagesOf(note.id);
-  el.innerHTML = imgs.length ? `<div class="editor-imgs-label">附图 ${imgs.length} 张</div>
-    <div class="note-imgs">${imgs.map(img => `
-      <figure class="note-img-wrap">
-        <button class="note-img" data-action="view-note-image" data-id="${esc(img.id)}" aria-label="查看图片">
-          <img src="${imageUrl(img)}" alt="随手记图片">
-        </button>
-        <button class="qn-img-del static" data-action="delete-note-image" data-id="${esc(img.id)}" aria-label="删除图片">${icon('x', 11)}</button>
-      </figure>`).join('')}</div>` : '';
+  const total = imgs.length + (pending ? pending.length : 0);
+  const existing = imgs.map(img => `
+    <figure class="note-img-wrap">
+      <button class="note-img" data-action="view-note-image" data-id="${esc(img.id)}" aria-label="查看图片">
+        <img src="${imageUrl(img)}" alt="随手记图片">
+      </button>
+      <button class="qn-img-del static" data-action="delete-note-image" data-id="${esc(img.id)}" aria-label="删除图片">${icon('x', 11)}</button>
+    </figure>`).join('');
+  const pendingHtml = (pending || []).map((f, i) => `
+    <figure class="note-img-wrap">
+      <span class="note-img"><img src="${f.objectUrl}" alt="待上传图片"></span>
+      <button class="qn-img-del static" data-action="editor-remove-image" data-index="${i}" aria-label="移除图片">${icon('x', 11)}</button>
+    </figure>`).join('');
+  const addBtn = `<button type="button" class="btn btn-secondary btn-sm" data-action="editor-pick-image" ${CLOUD.writable() ? '' : 'disabled'}>${icon('image', 13)} 添加图片</button>`;
+  el.innerHTML = `<div class="editor-imgs-label">附图 ${total} 张 · 保存后上传</div>
+    <div class="note-imgs">${existing}${pendingHtml}
+      <div class="qn-img-add editor-img-add">${addBtn}<span class="qn-img-hint">点击或粘贴截图</span></div>
+    </div>`;
+}
+
+function addEditorFiles(fileList) {
+  if (!editorCtx) return;
+  if (!CLOUD.writable()) { toast('只读模式，不能上传图片', 'warn'); return; }
+  for (const file of fileList) {
+    if (!file.type || !file.type.startsWith('image/')) continue;
+    if (file.size > 20 * 1024 * 1024) { toast('图片不能超过 20MB', 'warn'); continue; }
+    const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+    editorCtx.pending.push({
+      file,
+      ext: isPng ? 'png' : (file.name.split('.').pop() || 'png'),
+      objectUrl: URL.createObjectURL(file)
+    });
+  }
+  renderEditorImages();
+}
+
+function removeEditorImage(index) {
+  if (!editorCtx) return;
+  const f = editorCtx.pending[index];
+  if (f) { try { URL.revokeObjectURL(f.objectUrl); } catch (e) {} }
+  editorCtx.pending.splice(index, 1);
+  renderEditorImages();
 }
 
 function setEditorKind(kind) {
@@ -4211,7 +4273,8 @@ async function saveNoteEdits() {
   if (tags) draft.tags = parseTags(tags.value);
   const contentEl = entry.modal.querySelector('#editorContent');
   const content = contentEl ? contentEl.value.trim() : '';
-  if (!content && !noteImagesOf(note.id).length) {
+  const pendingFiles = editorCtx.pending ? editorCtx.pending.slice() : [];
+  if (!content && !noteImagesOf(note.id).length && !pendingFiles.length) {
     toast('内容不能为空', 'info');
     if (contentEl) contentEl.focus();
     return;
@@ -4246,9 +4309,30 @@ async function saveNoteEdits() {
   try {
     await DB.putNote(updated);
     replaceNoteState(updated);
+    if (pendingFiles.length) {
+      const ts = new Date().toISOString();
+      for (const f of pendingFiles) {
+        const id = uid();
+        const rec = {
+          id,
+          noteId: updated.id,
+          customerId: updated.kind === 'customer' ? updated.customerId : '',
+          caption: '',
+          createdAt: ts
+        };
+        await DB.putImage(rec);
+        const path = await CLOUD.uploadImage(rec, f.file);
+        rec.path = path;
+        await DB.putImage(rec);
+        state.noteImages.push(rec);
+        state.imagesUpdatedAt = Date.now();
+        try { URL.revokeObjectURL(f.objectUrl); } catch (e) {}
+      }
+      editorCtx.pending = [];
+    }
     entry.close();
     renderApp();
-    toast('记录已保存');
+    toast('记录已保存' + (pendingFiles.length ? `，并上传 ${pendingFiles.length} 张图片` : ''));
   } catch (err) {
     btn.disabled = false;
     btn.innerHTML = old;
