@@ -4312,17 +4312,20 @@ async function saveNoteEdits() {
     if (pendingFiles.length) {
       const ts = new Date().toISOString();
       for (const f of pendingFiles) {
-        const id = uid();
         const rec = {
-          id,
+          id: uid(),
           noteId: updated.id,
           customerId: updated.kind === 'customer' ? updated.customerId : '',
+          name: f.file.name || '截图.png',
+          type: f.file.type || 'image/png',
+          size: f.file.size,
           caption: '',
-          createdAt: ts
+          createdAt: ts,
+          blob: f.file
         };
         await DB.putImage(rec);
-        const path = await CLOUD.uploadImage(rec, f.file);
-        rec.path = path;
+        rec.path = await CLOUD.uploadImage(rec);
+        rec.updatedAt = new Date().toISOString();
         await DB.putImage(rec);
         state.noteImages.push(rec);
         state.imagesUpdatedAt = Date.now();
