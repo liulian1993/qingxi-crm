@@ -1,7 +1,7 @@
 {
   "version": 2,
   "app": "清洗剂客户管理",
-  "updatedAt": "2026-11-27T08:42:09.553Z",
+  "updatedAt": "2026-11-27T08:42:12.466Z",
   "customers": [
     {
       "company": "浙江科能达电气有限公司",
@@ -51,5 +51,17 @@
       "updatedAt": "2026-11-27T08:37:35.822Z"
     }
   ],
-  "images": []
+  "images": [
+    {
+      "id": "69b30faf-ac78-4eb3-98a9-49fed550eb84",
+      "customerId": "",
+      "noteId": "8aef0ca8-73b9-4eed-8bfa-ff3a1465d3ca",
+      "name": "pasted.png",
+      "type": "image/png",
+      "size": 70,
+      "caption": "",
+      "path": "images/69b30faf-ac78-4eb3-98a9-49fed550eb84.png",
+      "createdAt": "2026-11-27T08:42:08.623Z"
+    }
+  ]
 }
