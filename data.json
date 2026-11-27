@@ -1,7 +1,7 @@
 {
   "version": 2,
   "app": "清洗剂客户管理",
-  "updatedAt": "2026-11-27T02:04:56.803Z",
+  "updatedAt": "2026-11-27T02:04:59.135Z",
   "customers": [
     {
       "company": "测试客户-自动化验证",
@@ -70,7 +70,20 @@
       "followUps": []
     }
   ],
-  "notes": [],
+  "notes": [
+    {
+      "id": "b2ef3f8e-5071-44d3-9ff4-cbfa335606cb",
+      "kind": "summary",
+      "content": "测试速记-自动化验证：松香清洗剂残留观察，含一张附图，验证完会删除。",
+      "customerId": "",
+      "companyName": "",
+      "dueDate": "",
+      "done": false,
+      "tags": [],
+      "createdAt": "2026-11-27T02:04:55.880Z",
+      "updatedAt": "2026-11-27T02:04:55.880Z"
+    }
+  ],
   "images": [
     {
       "id": "03670b38-b41f-4974-aeff-a72efa9ebae8",
@@ -80,7 +93,7 @@
       "type": "image/png",
       "size": 70,
       "caption": "",
-      "path": "",
+      "path": "images/03670b38-b41f-4974-aeff-a72efa9ebae8.png",
       "createdAt": "2026-11-27T02:04:55.880Z"
     }
   ]
