@@ -1,7 +1,7 @@
 {
   "version": 2,
   "app": "清洗剂客户管理",
-  "updatedAt": "2026-11-28T15:10:14.974Z",
+  "updatedAt": "2026-11-28T15:10:18.799Z",
   "customers": [
     {
       "company": "浙江科能达电气有限公司",
@@ -83,7 +83,7 @@
       "type": "image/png",
       "size": 254723,
       "caption": "",
-      "path": "",
+      "path": "images/e076ae6e-e899-497a-877c-3fd47472ecbd.png",
       "createdAt": "2026-11-28T15:10:14.067Z"
     }
   ]
